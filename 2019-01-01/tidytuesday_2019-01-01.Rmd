@@ -1,0 +1,44 @@
+---
+title: 'Tidy Tuesday: 2019-01-01'
+author: "Jacob Schwan"
+date: "January 1, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(tidyverse, skimr, lubridate)
+```
+
+```{r}
+tidytuesday <- readRDS("tidytuesday_tweets.rds")
+```
+
+```{r}
+tt_nort <- tidytuesday %>%
+   filter(!is_quote, !is_retweet) %>%
+   select(created_at, screen_name, text, source) %>%
+   mutate(day = wday(created_at, abbr = T, label = T, week_start = 2))
+```
+
+
+```{r}
+head(tt_nort$day)
+```
+
+```{r}
+tt_nort %>%
+   ggplot(aes(x = day)) +
+   geom_bar()
+```
+
+```{r}
+tt_nort %>%
+   mutate(week = week(created_at)) %>%
+   ggplot(aes(x = week, y = day)) +
+   geom_count()
+```
+
