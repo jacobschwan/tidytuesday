@@ -1,0 +1,62 @@
+---
+title: 'Tidy Tuesday: Passwords'
+author: "Jacob Schwan"
+date: "1/14/2020"
+output: html_document
+---
+
+```{r}
+pacman::p_load(tidyverse, skimr)
+```
+
+```{r}
+passwords <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-14/passwords.csv')
+
+```
+
+```{r}
+skim(passwords)
+```
+
+```{r}
+tail(passwords, 8)
+```
+
+```{r}
+passwords <- passwords %>%
+    filter(!is.na(rank))
+```
+
+
+```{r}
+passwords %>%
+    count(category)
+```
+
+```{r}
+passwords %>%
+    ggplot(aes(x = category, y = rank)) +
+    geom_boxplot()
+```
+
+```{r}
+passwords %>%
+    ggplot(aes(x = category, y = offline_crack_sec)) +
+    geom_boxplot()
+```
+
+```{r}
+passwords %>%
+    count(time_unit)
+```
+
+```{r}
+pacman::p_load(lubridate)
+```
+
+```{r}
+passwords %>%
+    mutate(crack_time = map2(value, time_unit, duration)) %>%
+    unnest(crack_time) 
+```
+
