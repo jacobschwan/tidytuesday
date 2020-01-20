@@ -6,7 +6,8 @@ output: html_document
 ---
 
 ```{r}
-pacman::p_load(tidyverse, skimr)
+pacman::p_load(tidyverse, skimr, ggdark)
+theme_set(theme_minimal())
 ```
 
 ```{r}
@@ -57,6 +58,73 @@ pacman::p_load(lubridate)
 ```{r}
 passwords %>%
     mutate(crack_time = map2(value, time_unit, duration)) %>%
-    unnest(crack_time) 
+    unnest(crack_time) %>%
+    mutate(char_length = nchar(password))
 ```
 
+```{r}
+passwords %>%
+    count(category, sort = T) %>%
+    mutate(percent = scales::percent(n / sum(n)),
+           category = fct_reorder(category, n)) %>%
+    ggplot(aes(x = category, y = n, label = percent, color = category, fill = category)) +
+    geom_col() +
+    geom_text(nudge_y = 10) +
+    coord_flip()
+```
+
+```{r}
+passwords %>%
+    mutate(char_length = nchar(password)) %>%
+    ggplot(aes(x = char_length, y = rank, label = password, size = strength, color = category)) +
+    geom_text(position = "jitter") + 
+    scale_y_reverse()
+```
+
+```{r}
+categories <- passwords %>%
+    distinct(category) %>%
+    pull(category)
+
+categories %>%
+    str_replace_all("-", " ") %>%
+    str_to_title()
+```
+
+
+```{r}
+passwords_factored <- passwords %>%
+    mutate(first_char = str_to_lower(str_sub(password, 1, 1))) %>%
+    mutate(first_char = factor(first_char, levels = c(letters, 0:9)))
+
+passwords_factored %>%
+    ggplot(aes(x = first_char, y = rank_alt, label = password, color = category, size = strength)) +
+    geom_text(position = "jitter", alpha = .5) +
+    scale_y_reverse(breaks = c(1,10,50,100, 250, 500)) +
+    scale_x_discrete(breaks = c("a","z","0","9"),
+                     limits = c(sort(rep(letters, 4)),0:9)) +
+    expand_limits(x = c(-10, 120)) +
+    scale_color_discrete(labels = str_to_title(str_replace_all(unique(passwords$category), "-", " ")),
+                         name = "Category") +
+    guides(size = F) +
+    dark_mode() +
+    theme(legend.position = "top") +
+    labs(x = NULL,
+         y = "Rank")
+    
+```
+
+```{r}
+custom_rep <- function(first_char, n) {
+    rep(first_char, n)
+}
+
+passwords_factored %>%
+#    mutate(first_char = as.character(first_char)) %>%
+    count(first_char)
+
+
+```
+
+[SO: Manipulate spacing of discrete axis](https://stackoverflow.com/questions/44141993/spacing-of-discrete-axis-by-a-categorical-variable)
+[SO: Turn off select legends](https://stackoverflow.com/questions/14604435/turning-off-some-legends-in-a-ggplot)
