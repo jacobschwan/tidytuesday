@@ -1,0 +1,104 @@
+---
+title: "TidyTuesday 2020-07-21"
+author: "Jacob Schwan"
+date: "7/21/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(tidyverse, tidytuesdayR, ggrepel, ggtext, gghighlight, geofacet)
+```
+
+```{r}
+animal_outcomes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/animal_outcomes.csv')
+animal_complaints <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/animal_complaints.csv')
+brisbane_complaints <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-07-21/brisbane_complaints.csv',
+                                       col_types = cols(.default = col_character()))
+```
+
+```{r}
+outcomes_wide <- animal_outcomes %>%
+    gather(key = "region", value = "count", -year, -animal_type, -outcome)
+
+outcomes_wide %>%
+    head()
+```
+
+```{r}
+outcome_percents <- outcomes_wide %>%
+    filter(region != "Total") %>%
+    group_by(year, region, outcome) %>%
+    summarize(count = sum(count, na.rm = T)) %>%
+    mutate(total = sum(count, na.rm = T),
+           percent = count/total)
+
+outcome_percents
+```
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    ggplot(aes(x = total, y = percent, color = region)) +
+    geom_point() +
+    facet_wrap( ~ year)
+```
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    ggplot(aes(x = year, y = percent, color = region)) +
+    geom_line()
+```
+
+
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    ggplot(aes(x = year, y = total, color = region)) +
+    geom_line()
+```
+
+QLD is handling more pets 
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    gather("measure", "value", count, total) %>%
+    ggplot(aes(x = year, y = value, color = measure)) +
+    geom_line() +
+    facet_wrap(~ region)
+```
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    mutate(Euthanized = count,
+           Saved = total - count) %>%
+    gather("measure", "value", Euthanized, Saved) %>%
+    mutate(measure = fct_relevel(measure, c("Saved", "Euthanized"))) %>%
+    ggplot(aes(x = year, y = value, fill = measure)) +
+    geom_col() +
+    facet_wrap(~ region)
+```
+
+```{r}
+outcome_percents %>%
+    filter(outcome == "Euthanized") %>%
+    mutate(Euthanized = count,
+           Saved = total - count) %>%
+    gather("measure", "value", Euthanized, Saved) %>%
+    mutate(measure = fct_relevel(measure, c("Saved", "Euthanized")),
+           alpha = if_else(region == "QLD", 1, 0.5)) %>%
+    ggplot(aes(x = year, y = value, fill = measure, alpha = alpha)) +
+    geom_area() +
+    scale_alpha_identity() +
+    facet_wrap(~ region) + 
+    theme_minimal()
+```
+
+
