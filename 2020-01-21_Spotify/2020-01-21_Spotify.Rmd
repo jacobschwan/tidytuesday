@@ -1,0 +1,83 @@
+---
+title: 'Tidy Tuesday 2020-01-21: Spotify'
+author: "Jacob Schwan"
+date: "1/23/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(tidyverse, lubridate, skimr, janitor)
+```
+
+## Data
+
+```{r}
+spotify_songs <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv')
+
+```
+
+```{r}
+skim(spotify_songs)
+```
+
+```{r}
+spotify_songs %>%
+    filter(is.na(track_name))
+```
+
+NA's appear to be all the same record
+
+```{r}
+spotify_songs %>%
+    get_dupes(track_id)
+```
+
+Duplication appears to be caused by the playlist columns
+
+```{r}
+spotify_songs %>%
+    select(-starts_with("playlist")) %>%
+    distinct_all() %>%
+    get_dupes(track_id)
+```
+
+We may want the playlist genre, so for now we'll just take the first one on the list.
+
+```{r}
+spotify_unique <- spotify_songs %>%
+    distinct(track_id, .keep_all = T)
+```
+
+```{r}
+spotify_unique %>% 
+    count(playlist_genre, sort = T)
+```
+
+```{r}
+spotify_unique %>%
+    group_by(playlist_genre) %>%
+    summarise(mean_popularity = mean(track_popularity)) %>%
+    arrange(desc(mean_popularity))
+```
+
+```{r}
+spotify_unique %>%
+    group_by(playlist_genre) %>%
+    summarise_if(is.numeric, mean)
+```
+
+```{r}
+spotify_unique %>%
+    group_by(playlist_genre) %>%
+    summarise_if(is.numeric, mean) %>%
+    gather("measure", "value", -playlist_genre, -track_popularity, -duration_ms, -tempo, -key, -mode) %>%
+    ggplot(aes(x = measure, y = value, group = playlist_genre, fill = playlist_genre)) +
+    geom_point(color = "black") +
+    geom_line(color = "black") +
+    coord_polar()
+```
+
