@@ -1,0 +1,25 @@
+---
+title: 'TidyTuesday: 2020-07-28 Palmer Penguins'
+author: "Jacob Schwan"
+date: "7/27/2020"
+output: html_document
+---
+
+```{r}
+pacman::p_load(tidyverse, tidytuesdayR)
+```
+
+```{r}
+penguins <- tt_load('2020-07-28')
+```
+
+```{r}
+skimr::skim(penguins$penguins)
+```
+
+```{r}
+penguins$penguins %>%
+    ggplot(aes(y = year, x = island, color = species))+
+    geom_jitter()
+```
+
