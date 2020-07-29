@@ -5,6 +5,8 @@ date: "7/27/2020"
 output: html_document
 ---
 
+![The palmer penguins](https://github.com/allisonhorst/palmerpenguins/blob/master/man/figures/lter_penguins.png)
+
 ```{r}
 pacman::p_load(tidyverse, tidytuesdayR)
 ```
@@ -22,4 +24,60 @@ penguins$penguins %>%
     ggplot(aes(y = year, x = island, color = species))+
     geom_jitter()
 ```
+
+```{r}
+penguins$penguins %>%
+    ggplot() +
+    geom_jitter(aes(x = island, y = body_mass_g, color = species)) 
+```
+
+```{r}
+library(tidyverse)
+library(waffle)
+library(hrbrthemes)
+library(cowplot)
+library(palmerpenguins)
+library(glue)
+
+data("penguins")
+
+penguin_plot <- penguins %>%
+  count(year, island, species) %>%
+  ggplot(aes(
+    label = species,
+    values = n,
+    color = species
+  )) +
+  geom_pictogram(family = "FontAwesome5Brands-Regular", flip = F) +
+  scale_label_pictogram(values = c("linux", "linux", "linux")) +
+  scale_color_manual(values = c("#ff6602", "#c95dca", "#0f6f74")) +
+  facet_grid(island ~ year,
+             switch = "both") +
+  theme_ipsum_rc() +
+  theme_enhance_waffle() +
+  theme(
+    panel.grid = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    legend.position = "none"
+  ) +
+  labs(
+    title = "Number of Penguins Studied by Island, Species, & Year",
+    subtitle = "palmerpenguins: Palmer Archipelago (Antarctica) penguin data. R package version 0.1.0.",
+    caption = glue("@jacob_schwan #TidyTuesday",
+                   "Artwork: @allison_horst",
+                   .sep = "\n")
+  )
+
+penguin_plot_legend <- ggdraw(clip = "off") +
+  draw_plot(penguin_plot, scale = 1) +
+  draw_image("lter_penguins.png",
+             scale = .18,
+             x = .375,
+             y = -.3)
+
+ggsave("tt_2020-07-28.png", plot = penguin_plot_legend,
+       width = 10, height = 8)
+```
+
 
