@@ -1,0 +1,66 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(pins)
+```
+
+```{r}
+board_tswift <- board_url(
+    c(
+        taylor_album_songs = 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-10-17/taylor_album_songs.csv',
+        taylor_all_songs = 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-10-17/taylor_all_songs.csv',
+        taylor_albums = 'https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2023/2023-10-17/taylor_albums.csv'
+    )
+)
+```
+
+```{r}
+taylor_album_songs <- board_tswift |> 
+    pin_download(
+    "taylor_album_songs"
+) |>
+    read_csv()
+```
+
+```{r}
+taylor_album_songs |>
+    count(
+        time_signature
+    )
+```
+
+```{r}
+taylor_album_songs |>
+    count(
+        key_mode,
+        
+    )
+```
+
+```{r}
+taylor_all_songs <- board_tswift |>
+    pin_download("taylor_all_songs") |>
+    read_csv()
+```
+
+```{r}
+taylor_all_songs |>
+    count(key_mode)
+```
+
+```{r}
+taylor_all_songs |>
+    ggplot(
+        aes(
+            x = track_release,
+            y = key_mode
+        )
+    ) +
+    geom_point()
+```
+
